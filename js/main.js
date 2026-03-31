@@ -121,19 +121,45 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- Scroll animations (Intersection Observer) ---
   const animatedElements = document.querySelectorAll('[data-animate]');
 
-  const observer = new IntersectionObserver(
-    entries => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('in-view');
-          observer.unobserve(entry.target);
-        }
-      });
-    },
-    { threshold: 0.15, rootMargin: '0px 0px -50px 0px' }
-  );
+  if ('IntersectionObserver' in window) {
+    const observer = new IntersectionObserver(
+      entries => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('in-view');
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.05, rootMargin: '0px 0px 0px 0px' }
+    );
 
-  animatedElements.forEach(el => observer.observe(el));
+    animatedElements.forEach(el => observer.observe(el));
+  } else {
+    // Fallback: show everything immediately
+    animatedElements.forEach(el => el.classList.add('in-view'));
+  }
+
+  // Safety fallback: if elements are still hidden after 3 seconds, force show them
+  setTimeout(() => {
+    animatedElements.forEach(el => {
+      if (!el.classList.contains('in-view')) {
+        el.classList.add('in-view');
+      }
+    });
+    // Also trigger skill bars and counters
+    document.querySelectorAll('.skill-item__fill').forEach(fill => {
+      if (fill.style.width === '' || fill.style.width === '0px') {
+        fill.style.width = fill.getAttribute('data-width');
+      }
+    });
+    document.querySelectorAll('[data-count]').forEach(el => {
+      const target = parseInt(el.getAttribute('data-count'), 10);
+      if (parseInt(el.textContent, 10) !== target) {
+        el.textContent = target;
+      }
+    });
+  }, 3000);
 
   // --- Skill bar animation ---
   const skillFills = document.querySelectorAll('.skill-item__fill');
@@ -148,7 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       });
     },
-    { threshold: 0.3 }
+    { threshold: 0.1 }
   );
 
   skillFills.forEach(fill => skillObserver.observe(fill));
@@ -167,7 +193,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       });
     },
-    { threshold: 0.5 }
+    { threshold: 0.2 }
   );
 
   counters.forEach(counter => counterObserver.observe(counter));

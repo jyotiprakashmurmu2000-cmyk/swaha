@@ -1166,6 +1166,14 @@ ul {
   transform: translateY(0);
 }
 
+/* Fallback: if JS fails or observer doesn't fire, show content after load */
+@media (prefers-reduced-motion: reduce) {
+  [data-animate] {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 /* ========================================
    Responsive Design
    ======================================== */
